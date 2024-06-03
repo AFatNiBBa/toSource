@@ -1,31 +1,13 @@
 {
   "name": "uneval.js",
-  "version": "5.7.2",
-  "description": "Convert an object to its source code (With references and PROXIES too!)",
-  "main": "main.js",
+  "version": "11.0.0",
   "scripts": {
-    "save": "npm publish & push"
+    "build": "vite build",
+    "save": "npm run build && npm publish"
   },
-  "keywords": [
-    "uneval",
-    "eval",
-    "toSource",
-    "serialize",
-    "serialization",
-    "circular",
-    "reference",
-    "jsproxy",
-    "proxy",
-    "stringify",
-    "json"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/AFatNiBBa/uneval"
-  },
-  "author": "AFatNiBBa",
-  "license": "ISC",
-  "optionalDependencies": {
-    "internal-prop": "^2.1.3"
+  "devDependencies": {
+    "@types/node": "^20.7.0",
+    "vite": "^4.4.9",
+    "vite-plugin-dts": "^3.6.0"
   }
 }
