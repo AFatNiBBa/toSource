@@ -1,6 +1,6 @@
 
 import { CodeWriter } from "../writer";
-import { Stats } from "./stats";
+import { Stats } from "./opts";
 
 /** An {@link IStruct} that handles multiple references to a value in the same main structure */
 export class RefStruct implements IStruct {
@@ -21,9 +21,11 @@ export class RefStruct implements IStruct {
             writer.write("("),
             writer.enter(),
             writer.endl();
+        else if (!safe)
+            writer.write("(");
         writer.write(`${stats.opts.var}[${id}]`, "=", "");
         this.struct!.writeTo(writer, stats, true);
-        if (!circ.length) return;
+        if (!circ.length) return !safe && writer.write(")");
         for (const elm of circ)
             writer.write(","),
             writer.endl(),

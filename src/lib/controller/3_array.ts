@@ -4,7 +4,7 @@ import { KeyStruct, PropDefer } from "../model/prop";
 import { ObjectScanner_2 } from "./2_object";
 import { AwaitIterator } from "../async";
 import { CodeWriter } from "../writer";
-import { Stats } from "../model/stats";
+import { Stats } from "../model/opts";
 
 /** Scanner that handles arrays */
 export abstract class ArrayScanner_3 extends ObjectScanner_2 {

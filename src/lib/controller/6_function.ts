@@ -2,7 +2,7 @@
 import { ArrayScanner_3 } from "./3_array";
 import { IStruct } from "../model/struct";
 import { AwaitIterator } from "../async";
-import { Stats } from "../model/stats";
+import { Stats } from "../model/opts";
 
 /** Scanner that handles functions */
 export class FunctionScanner_6 extends ArrayScanner_3 {

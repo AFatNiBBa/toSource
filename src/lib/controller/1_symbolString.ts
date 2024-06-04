@@ -4,7 +4,7 @@ import { KeyStruct } from "../model/prop";
 import { AwaitIterator } from "../async";
 import { BaseScanner_0 } from "./0_base";
 import { CodeWriter } from "../writer";
-import { Stats } from "../model/stats";
+import { Stats } from "../model/opts";
 
 /** Expression that checks if a string follows the pattern of the description of a built-in global symbol */
 const REGEX_GLOBAL_SYMBOL = /(?<=^Symbol\.)\w+$/;

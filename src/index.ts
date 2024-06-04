@@ -1,14 +1,13 @@
 import { FunctionScanner_6 } from "./lib/controller/6_function";
-import { IOpts, normalize } from "./lib/model/opts";
+import { IOpts, Stats } from "./lib/model/opts";
 import { CodeWriter } from "./lib/writer";
-import { Stats } from "./lib/model/stats";
 import { callSync } from "./lib/async";
 
 export { FunctionScanner_6 as Scanner };
 
 const scanner = new FunctionScanner_6();
 
-const opts: IOpts = normalize({
+const opts: IOpts = Stats.normalize({
 	strRepeatMaxLengthOnKeys: true,
 	strRepeatMaxLength: 12,
 	tab: 2

@@ -1,7 +1,7 @@
 
 import { IStruct, RawStruct, RefStruct } from "../model/struct";
 import { AwaitIterator } from "../async";
-import { Stats } from "../model/stats";
+import { Stats } from "../model/opts";
 
 /**
  * Traverses the nested values of a series of objects.

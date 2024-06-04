@@ -1,31 +1,53 @@
 
-/** Handles a formatting option of {@link IUserOpts} */
-const normalizeString = (x: string | boolean | undefined, def: string) => typeof x === "boolean" ? x ? def : "" : x ?? def;
+import { RefStruct } from "./struct";
 
-/**
- * Creates an {@link IOpts} processing {@link opts}
- * @param opts The {@link IUserOpts} to normalize
- */
-export function normalize(opts: IUserOpts) {
-    const out: Partial<IOpts> = {};
-    
-    if (opts.pretty ?? true)
-    {
-        const temp = out.space = normalizeString(opts.space, " ");
-        out.endl = normalizeString(opts.endl, "\n");
-        const { tab } = opts;
-        out.tab = typeof tab === "number" ? temp.repeat(tab) : normalizeString(tab, "\t");
+/** Object that represents the state of the current serialization */
+export class Stats {
+    cache = new Map<unknown, RefStruct>();
+    id = 0;
+
+    constructor(public opts: IOpts) { }
+
+    /**
+     * Handles an optional formatting option of {@link IUserOpts}
+     * @param value The value for the option
+     * @param def The default value for the option
+     */
+    static normalizeOptStr(value: boolean | string | undefined, def: string) {
+        return typeof value === "boolean" ? value ? def : "" : value ?? def;
     }
-    else out.space = out.endl = out.tab = "";
 
-    out.strRepeatMaxLengthOnKeys = opts.strRepeatMaxLengthOnKeys ?? false;
-    out.strRepeatMaxLength = opts.strRepeatMaxLength ?? Infinity;
-    out.depth = opts.depth ?? Infinity;
-    out.factory = opts.factory ?? false;
-    out.safe = opts.safe ?? false;
-    out.var = opts.var ?? "x";
-    
-    return <IOpts>out;
+    /**
+     * Handles a repeatable optional formatting option of {@link IUserOpts}
+     * @param value The value for the option
+     * @param def The default value for the option
+     * @param rep The value to be repeated if {@link value} is a number
+     */
+    static normalizeOptNumStr(value: boolean | number | string | undefined, def: string, rep: string) {
+        return typeof value === "number" ? rep.repeat(value) : this.normalizeOptStr(value, def);
+    }
+
+    /**
+     * Creates an {@link IOpts} processing {@link opts}
+     * @param opts The {@link IUserOpts} to normalize
+     */
+    static normalize(opts: IUserOpts) {
+        const out: Partial<IOpts> = {};
+        out.strRepeatMaxLengthOnKeys = opts.strRepeatMaxLengthOnKeys ?? false;
+        out.strRepeatMaxLength = opts.strRepeatMaxLength ?? Infinity;
+        out.depth = opts.depth ?? Infinity;
+        out.factory = opts.factory ?? false;
+        out.safe = opts.safe ?? false;
+        out.var = opts.var ?? "x";
+
+        if (opts.pretty ?? true)
+            out.endl = this.normalizeOptStr(opts.endl, "\n"),
+            out.tab = this.normalizeOptNumStr(opts.tab, "\t", out.space = this.normalizeOptStr(opts.space, " "));
+        else
+            out.space = out.endl = out.tab = "";
+        
+        return <IOpts>out;
+    }
 }
 
 /**
@@ -34,9 +56,9 @@ export function normalize(opts: IUserOpts) {
  */
 export interface IUserOpts extends Partial<IActualOpts> {
     pretty?: boolean;
-    space?: string | boolean;
-    endl?: string | boolean;
-    tab?: string | number | boolean;
+    space?: boolean | string;
+    endl?: boolean | string;
+    tab?: boolean | number | string;
 }
 
 /** Formatting options and {@link IActualOpts} */

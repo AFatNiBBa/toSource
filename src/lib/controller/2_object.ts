@@ -4,7 +4,7 @@ import { IStruct, RawStruct, RefStruct } from "../model/struct";
 import { PropDefer, PropStruct } from "../model/prop";
 import { AwaitIterator } from "../async";
 import { CodeWriter } from "../writer";
-import { Stats } from "../model/stats";
+import { Stats } from "../model/opts";
 
 /** Scanner that handles objects */
 export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {

@@ -1,7 +1,7 @@
 
 import { IDefer, IStruct, RefStruct } from "./struct";
 import { CodeWriter } from "../writer";
-import { Stats } from "./stats";
+import { Stats } from "./opts";
 
 /** Expression that checks if a string is a valid JavaScript variable name */
 const REGEX_VARIABLE_NAME = /^[\p{L}_$][\p{L}\p{N}_$]*$/u;
