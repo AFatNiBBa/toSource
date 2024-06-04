@@ -2,6 +2,7 @@ import { FunctionScanner_6 } from "./lib/controller/6_function";
 import { IOpts, normalize } from "./lib/model/opts";
 import { CodeWriter } from "./lib/writer";
 import { Stats } from "./lib/model/stats";
+import { callSync } from "./lib/async";
 
 export { FunctionScanner_6 as Scanner };
 
@@ -18,7 +19,7 @@ const a = [] as unknown[];
 a.push(a);
 const s = Symbol();
 const g = Object(s);
-const struct = scanner.scan(
+const struct = callSync(scanner.scan(
 	{
 		a: [, , -0, "ca", , , , "ca", "ciao beppe come va, tutto bene?", [a, true, a], "ciao beppe come va, tutto bene?", ,],
 		b: a,
@@ -35,7 +36,7 @@ const struct = scanner.scan(
 		ungue: [/caiccioa/ig, new Date(2002, 3, 19)]
 	},
 	stats
-);
+));
 
 console.log(struct);
 const writer = new CodeWriter(opts);

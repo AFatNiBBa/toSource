@@ -1,12 +1,13 @@
 
 import { SymbolStringScanner_1 } from "./1_symbolString";
 import { IStruct, RawStruct } from "../model/struct";
+import { AwaitIterator } from "../async";
 import { CodeWriter } from "../writer";
 import { Stats } from "../model/stats";
 
 /** Scanner that handles objects */
 export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
-    scanObject(value: object, stats: Stats): IStruct {
+    scanObject(value: object, stats: Stats): AwaitIterator<IStruct> {
         return this.scanRef(value, stats, () => this.scanObjectInner(value, stats));
     }
 
@@ -15,16 +16,16 @@ export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
      * @param value The value to traverse
      * @param stats The state of the current serialization
      */
-    scanObjectInner(value: object, stats: Stats): IStruct {
+    *scanObjectInner(value: object, stats: Stats): AwaitIterator<IStruct> {
         return Array.isArray(value)
-            ? this.scanArray(value, stats)
+            ? yield* this.scanArray(value, stats)
             : value instanceof Date
                 ? new RawStruct(`new Date(${+value})`)
                 : value instanceof RegExp
                     ? new RawStruct(value.toString())
                     : value instanceof String || value instanceof Boolean || value instanceof Number || value instanceof BigInt || value instanceof Symbol
-                        ? this.scanObjectWrapper(value, stats)
-                        : this.scanObjectLiteral(value, stats);
+                        ? yield* this.scanObjectWrapper(value, stats)
+                        : yield* this.scanObjectLiteral(value, stats);
     }
 
     /**
@@ -32,8 +33,8 @@ export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
      * @param value The value to traverse
      * @param stats The state of the current serialization
      */
-    scanObjectWrapper(value: object, stats: Stats) {
-        return new WrapperStruct(this.scan(value.valueOf(), stats));
+    *scanObjectWrapper(value: object, stats: Stats): AwaitIterator<IStruct> {
+        return new WrapperStruct(yield* this.scan(value.valueOf(), stats));
     }
 
     /**
@@ -41,10 +42,11 @@ export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
      * @param value The value to traverse
      * @param stats The state of the current serialization
      */
-    scanObjectLiteral(value: object, stats: Stats) {
-        return new ObjectStruct(Reflect
-            .ownKeys(value)
-            .map(x => new PropStruct(this.scanKey(x, stats), this.scan(value[x as keyof typeof value], stats))));
+    *scanObjectLiteral(value: object, stats: Stats): AwaitIterator<IStruct> {
+        const items: IStruct[] = [];
+        for (const k of Reflect.ownKeys(value))
+            items.push(new PropStruct(yield* this.scanKey(k, stats), yield* this.scan(value[k as keyof typeof value], stats)));
+        return new ObjectStruct(items);
     }
 
     /**
@@ -52,7 +54,7 @@ export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
      * @param value The value to traverse
      * @param stats The state of the current serialization
      */
-    abstract scanArray(value: Array<unknown>, stats: Stats): IStruct;
+    abstract scanArray(value: Array<unknown>, stats: Stats): AwaitIterator<IStruct>;
 }
 
 /** An {@link IStruct} that handles an object wrapper for a native value */

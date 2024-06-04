@@ -1,16 +1,17 @@
 
 import { ObjectScanner_2 } from "./2_object";
 import { IStruct } from "../model/struct";
+import { AwaitIterator } from "../async";
 import { CodeWriter } from "../writer";
 import { Stats } from "../model/stats";
 
 /** Scanner that handles arrays */
 export abstract class ArrayScanner_3 extends ObjectScanner_2 {
-    scanArray(value: Array<unknown>, stats: Stats): IStruct {
+    *scanArray(value: Array<unknown>, stats: Stats): AwaitIterator<IStruct> {
         const { length } = value, items = new Array<IStruct | undefined>(length);
         for (var i = 0; i < length; i++)
             if (i in value)
-                items[i] = this.scan(value[i], stats);
+                items[i] = yield* this.scan(value[i], stats);
         return new ArrayStruct(items);
     }
 }
