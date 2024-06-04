@@ -1,6 +1,7 @@
 
 import { SymbolStringScanner_1 } from "./1_symbolString";
-import { IStruct, RawStruct } from "../model/struct";
+import { IStruct, RawStruct, RefStruct } from "../model/struct";
+import { PropDefer, PropStruct } from "../model/prop";
 import { AwaitIterator } from "../async";
 import { CodeWriter } from "../writer";
 import { Stats } from "../model/stats";
@@ -8,24 +9,25 @@ import { Stats } from "../model/stats";
 /** Scanner that handles objects */
 export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
     scanObject(value: object, stats: Stats): AwaitIterator<IStruct> {
-        return this.scanRef(value, stats, () => this.scanObjectInner(value, stats));
+        return this.scanRef(value, stats, x => this.scanObjectInner(value, stats, x));
     }
 
     /**
      * Traverses an object without checking for multiple references
      * @param value The value to traverse
      * @param stats The state of the current serialization
+     * @param ref The reference to the current value
      */
-    *scanObjectInner(value: object, stats: Stats): AwaitIterator<IStruct> {
+    *scanObjectInner(value: object, stats: Stats, ref: RefStruct): AwaitIterator<IStruct> {
         return Array.isArray(value)
-            ? yield* this.scanArray(value, stats)
+            ? yield* this.scanArray(value, stats, ref)
             : value instanceof Date
                 ? new RawStruct(`new Date(${+value})`)
                 : value instanceof RegExp
                     ? new RawStruct(value.toString())
                     : value instanceof String || value instanceof Boolean || value instanceof Number || value instanceof BigInt || value instanceof Symbol
                         ? yield* this.scanObjectWrapper(value, stats)
-                        : yield* this.scanObjectLiteral(value, stats);
+                        : yield* this.scanObjectLiteral(value, stats, ref);
     }
 
     /**
@@ -41,11 +43,16 @@ export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
      * Traverses an object literal
      * @param value The value to traverse
      * @param stats The state of the current serialization
+     * @param ref The reference to the current value
      */
-    *scanObjectLiteral(value: object, stats: Stats): AwaitIterator<IStruct> {
+    *scanObjectLiteral(value: object, stats: Stats, ref: RefStruct): AwaitIterator<IStruct> {
         const items: IStruct[] = [];
-        for (const k of Reflect.ownKeys(value))
-            items.push(new PropStruct(yield* this.scanKey(k, stats), yield* this.scan(value[k as keyof typeof value], stats)));
+        for (const elm of Reflect.ownKeys(value)) {
+            const k = yield* this.scanKey(elm, stats);
+            const v = yield* this.scan(value[elm as keyof typeof value], stats);
+            if (PropDefer.check(v, ref, () => k))
+                items.push(new PropStruct(k, v));
+        }
         return new ObjectStruct(items);
     }
 
@@ -53,13 +60,16 @@ export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
      * Traverses an array
      * @param value The value to traverse
      * @param stats The state of the current serialization
+     * @param ref The reference to the current value
      */
-    abstract scanArray(value: Array<unknown>, stats: Stats): AwaitIterator<IStruct>;
+    abstract scanArray(value: Array<unknown>, stats: Stats, ref: RefStruct): AwaitIterator<IStruct>;
 }
 
 /** An {@link IStruct} that handles an object wrapper for a native value */
 export class WrapperStruct implements IStruct {
     constructor(public struct: IStruct) { }
+
+    getRef() { return undefined; }
 
     writeTo(writer: CodeWriter, stats: Stats): void {
         writer.write("Object(");
@@ -71,6 +81,8 @@ export class WrapperStruct implements IStruct {
 /** An {@link IStruct} that handles object literals */
 export class ObjectStruct implements IStruct {
     constructor(public items: IStruct[]) { }
+
+    getRef() { return undefined; }
     
     writeTo(writer: CodeWriter, stats: Stats, safe: boolean) {
         if (!safe) writer.write("(");
@@ -88,23 +100,5 @@ export class ObjectStruct implements IStruct {
         }
         writer.write("}");
         if (!safe) writer.write(")");
-    }
-}
-
-/** An {@link IStruct} that handles a proterty assignment */
-export class PropStruct implements IStruct {
-    constructor(public key: IStruct, public value: IStruct) { }
-
-    /**
-     * Handles a property assignment in the most idiomatic way possible
-     * @param writer The output stream
-     * @param stats The state of the current serialization
-     * @param obj A value that tells whether the current property assignment is a property initialization inside an object literal
-     */
-    writeTo(writer: CodeWriter, stats: Stats, obj: boolean): void {
-        this.key.writeTo(writer, stats, obj);
-        if (obj) writer.write(":", "");
-        else writer.write("", "=", "");
-        this.value.writeTo(writer, stats, true);
     }
 }

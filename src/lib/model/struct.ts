@@ -2,50 +2,49 @@
 import { CodeWriter } from "../writer";
 import { Stats } from "./stats";
 
-/** Expression that checks if a string is a valid JavaScript variable name */
-const REGEX_VARIABLE_NAME = /^[\p{L}_$][\p{L}\p{N}_$]*$/u;
-
-/** An {@link IStruct} that represents an access to an object property */
-export class KeyStruct implements IStruct {
-    constructor(public key: IStruct | string) { }
-
-    /**
-     * Handles a property access in the most idiomatic way possible.
-     * If {@link key} is NOT a string, the indexer syntax (`[?]`) will be used regardless.
-     * If the string is a valid JavaScript variable name, it will be used as is (`?`) or with a dot in front (`.?`) if {@link obj} is `false`.
-     * If the string is not a valid JavaScript variable name, it will be stringified before being used (`"?"`) and wrapped too (`["?"]`) if {@link obj} is `false`
-     * @param writer The output stream
-     * @param stats The state of the current serialization
-     * @param obj A value that tells whether the current property access is a property initialization inside an object literal
-     */
-    writeTo(writer: CodeWriter, stats: Stats, obj: boolean): void {
-        const { key } = this;
-
-        if (typeof key !== "string")
-            return writer.write("["), key.writeTo(writer, stats, true), writer.write("]");
-
-        if (key.match(REGEX_VARIABLE_NAME))
-            return !obj && writer.write("."), writer.write(key);
-
-        const temp = JSON.stringify(key);
-        if (!obj) writer.write("[");
-        writer.write(temp);
-        if (!obj) writer.write("]");
-    }
-}
-
 /** An {@link IStruct} that handles multiple references to a value in the same main structure */
 export class RefStruct implements IStruct {
-    struct: IStruct | undefined;
     id: number | null | undefined;
+    struct: IStruct | undefined;
+    deferred: IDefer[] = [];
+    done = false;
+
+    getRef() { return this; }
 
     writeTo(writer: CodeWriter, stats: Stats, safe: boolean) {
         var { id } = this;
         if (id === undefined) return this.struct!.writeTo(writer, stats, safe); // If there's no id it means that there's only one reference
         if (id !== null) return writer.write(`${stats.opts.var}[${id}]`);       // If there's a number it means that the actual value has already been stringified
         id = this.id = stats.id++;                                              // If there's a `null` it means that the actual value must be stringified and registered in the deserialization cache because there're multiple references to it
+        const circ = [ ...this.filterDeferred() ];
+        if (circ.length)
+            writer.write("("),
+            writer.enter(),
+            writer.endl();
         writer.write(`${stats.opts.var}[${id}]`, "=", "");
         this.struct!.writeTo(writer, stats, true);
+        if (!circ.length) return;
+        for (const elm of circ)
+            writer.write(","),
+            writer.endl(),
+            elm.writeTo(writer, stats, true);
+        writer.exit();
+        writer.endl();
+        writer.write(")");
+    }
+
+    /**
+     * Yields the elements of {@link deferred} that can be emitted.
+     * If the value returned by the last element is not the same referenced by the current object, this reference gets emitted again
+     */
+    *filterDeferred(): Generator<IStruct> {
+        const { deferred } = this;
+        if (!deferred?.length) return;
+        for (var elm of deferred)
+            if (elm.notify(this))
+                yield elm;
+        if (this !== elm!.getRef())
+            yield this;
     }
 }
 
@@ -53,7 +52,19 @@ export class RefStruct implements IStruct {
 export class RawStruct implements IStruct {
     constructor(public value: string) { }
 
+    getRef() { return undefined; }
+
     writeTo(writer: CodeWriter) { writer.write(this.value); }
+}
+
+/** An {@link IStruct} that represents an operation that must be deferred because it requires certain objects to be emitted */
+export interface IDefer extends IStruct {
+    /**
+     * Notifies the current object that one of its dependencies have been emitted
+     * @param ref The reference to the emitted dependency
+     * @returns A value that tells wheter the current operation is ready to be emitted
+     */
+    notify(ref: RefStruct): boolean;
 }
 
 /**
@@ -62,6 +73,12 @@ export class RawStruct implements IStruct {
  * They're not meant to be stringified more than once
  */
 export interface IStruct {
+    /**
+     * Returns the reference of the current object.
+     * If there isn't any, ot it's not known at this level it returns `undefined`
+     */
+    getRef(): RefStruct | undefined;
+
     /**
      * Stringifies the represented structure into {@link writer}
      * @param writer The output stream
