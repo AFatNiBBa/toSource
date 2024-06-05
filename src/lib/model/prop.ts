@@ -64,9 +64,9 @@ export class PropStruct implements IStruct {
 
 /** An {@link IDefer} that handles a circular reference */
 export class PropDefer implements IDefer {
-    constructor(public obj: RefStruct, public prop: PropStruct) { }
+    get ready() { return this.obj.id != null; }
 
-    notify(ref: RefStruct) { return ref === this.obj; }
+    constructor(public obj: RefStruct, public prop: PropStruct) { }
 
     getRef() { return this.prop.getRef(); }
 
@@ -86,6 +86,6 @@ export class PropDefer implements IDefer {
         const ref = value.getRef();
         if (ref == null || ref.done) return value;
         const circ = new this(obj, new PropStruct(k(), value));
-        ref.deferred.push(circ);
+        ref.push(circ);
     }
 }

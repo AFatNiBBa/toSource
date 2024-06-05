@@ -43,7 +43,7 @@ const struct = callSync(
 	)
 );
 
-struct.getRef()!.deferred.push({ notify: () => true, getRef: () => undefined, writeTo: x => x.write("1") });
+struct.getRef()!.push({ ready: true, getRef: () => undefined, writeTo: x => x.write("1") });
 
 console.log(struct);
 const writer = new CodeWriter(opts);

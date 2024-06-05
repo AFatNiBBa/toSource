@@ -3,10 +3,9 @@ import { CodeWriter } from "../writer";
 import { Stats } from "./opts";
 
 /** An {@link IStruct} that handles multiple references to a value in the same main structure */
-export class RefStruct implements IStruct {
+export class RefStruct extends Array<IDefer> implements IStruct {
     id: number | null | undefined;
     struct: IStruct | undefined;
-    deferred: IDefer[] = [];
     done = false;
 
     getRef() { return this; }
@@ -40,10 +39,10 @@ export class RefStruct implements IStruct {
      * If the value returned by the last element is not the same referenced by the current object, this reference gets emitted again
      */
     *filterDeferred(): Generator<IStruct> {
-        const { deferred } = this;
-        if (!deferred?.length) return;
-        for (var elm of deferred)
-            if (elm.notify(this))
+        if (!this.length)
+            return;
+        for (var elm of this)
+            if (elm.ready)
                 yield elm;
         if (this !== elm!.getRef())
             yield this;
@@ -57,16 +56,6 @@ export class RawStruct implements IStruct {
     getRef() { return undefined; }
 
     writeTo(writer: CodeWriter) { writer.write(this.value); }
-}
-
-/** An {@link IStruct} that represents an operation that must be deferred because it requires certain objects to be emitted */
-export interface IDefer extends IStruct {
-    /**
-     * Notifies the current object that one of its dependencies have been emitted
-     * @param ref The reference to the emitted dependency
-     * @returns A value that tells wheter the current operation is ready to be emitted
-     */
-    notify(ref: RefStruct): boolean;
 }
 
 /**
@@ -89,3 +78,9 @@ export interface IStruct {
      */
     writeTo(writer: CodeWriter, stats: Stats, safe: boolean): void;
 }
+
+/**
+ * An {@link IStruct} that represents an operation that must be deferred.
+ * It's used to handle circular references
+ */
+export interface IDefer extends IStruct { ready: boolean; }
