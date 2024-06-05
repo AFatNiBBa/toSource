@@ -40,6 +40,7 @@ export abstract class BaseScanner_0 {
             ref.struct = yield* f(ref, value),
             ref.done = true;
         else if (ref.id === undefined)
+            stats.duplicates = true,
             ref.id = null;
         return ref;
     }

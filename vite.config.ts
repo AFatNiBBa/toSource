@@ -10,7 +10,7 @@ export default defineConfig({
         minify: false,
         target: "EsNext",
         lib: {
-            entry: join(__dirname, "src/index.ts"),
+            entry: join(__dirname, "src/__test.ts"),
             fileName: "index",
             name: "Uneval"
         }

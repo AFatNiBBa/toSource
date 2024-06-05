@@ -1,9 +1,11 @@
 
 import { RefStruct } from "./struct";
+import { Scanner } from "./scanner";
 
 /** Object that represents the state of the current serialization */
 export class Stats {
     cache = new Map<unknown, RefStruct>();
+    duplicates = false;
     id = 0;
 
     constructor(public opts: IOpts) { }
@@ -31,13 +33,14 @@ export class Stats {
      * Creates an {@link IOpts} processing {@link opts}
      * @param opts The {@link IUserOpts} to normalize
      */
-    static normalize(opts: IUserOpts) {
+    static normalize(opts: IUserOpts = {}) {
         const out: Partial<IOpts> = {};
+        out.scanner = opts.scanner ?? Scanner.prototype;
         out.strRepeatMaxLengthOnKeys = opts.strRepeatMaxLengthOnKeys ?? false;
         out.strRepeatMaxLength = opts.strRepeatMaxLength ?? Infinity;
         out.depth = opts.depth ?? Infinity;
         out.factory = opts.factory ?? false;
-        out.safe = opts.safe ?? false;
+        out.safe = opts.safe ?? true;
         out.var = opts.var ?? "x";
 
         if (opts.pretty ?? true)
@@ -70,6 +73,8 @@ export interface IOpts extends IActualOpts {
 
 /** Serialization options */
 interface IActualOpts {
+    scanner: Scanner;
+
     strRepeatMaxLengthOnKeys: boolean;
     strRepeatMaxLength: number;
     depth: number;

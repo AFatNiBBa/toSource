@@ -1,54 +1,43 @@
-import { FunctionScanner_6 } from "./lib/controller/6_function";
+
+import { AwaitIterator, callAsync, callSync } from "./lib/async";
 import { IOpts, Stats } from "./lib/model/opts";
 import { CodeWriter } from "./lib/writer";
-import { callSync } from "./lib/async";
 
-export { FunctionScanner_6 as Scanner };
+export { SymbolStruct } from "./lib/controller/1_symbolString";
+export { WrapperStruct, ObjectStruct } from "./lib/controller/2_object";
+export { ArrayStruct } from "./lib/controller/3_array";
+export * from "./lib/model/opts";
+export * from "./lib/model/prop";
+export * from "./lib/model/scanner";
+export * from "./lib/model/struct";
+export * from "./lib/async";
+export * from "./lib/writer";
 
-const scanner = new FunctionScanner_6();
+/**
+ * Synchronous version of {@link uneval}
+ * @param value The value to serialize
+ * @param opts The serialization options
+ */
+export const unevalSync = (value: unknown, opts: IOpts) => callSync(uneval(value, opts));
 
-const opts: IOpts = Stats.normalize({
-	strRepeatMaxLengthOnKeys: true,
-	strRepeatMaxLength: 12,
-	tab: 2
-});
+/**
+ * Asynchronous version of {@link uneval}
+ * @param value The value to serialize
+ * @param opts The serialization options
+ */
+export const unevalAsync = (value: unknown, opts: IOpts) => callAsync(uneval(value, opts));
 
-const stats = new Stats(opts);
-const a = [] as unknown[];
-a.push(a);
-const s = Symbol();
-const g = Object(s);
-
-const struct = callSync(
-	scanner.scan(
-		{
-			a: [, , -0, "ca", , , , "ca", "ciao beppe come va, tutto bene?", [a, true, a], "ciao beppe come va, tutto bene?", ,],
-			b: a,
-			c: { 变量: "ciao beppe come va, tutto bene?", 3: 1, [s]: s, [Symbol.iterator]: s },
-			[s]: Symbol("ciao"),
-			g,
-			h: g,
-			f: new String("beppe"),
-			i: Symbol("ciao"),
-			[Symbol.for("ciao beppe come va, tutto bene?")]: Symbol.for("ciao beppe come va, tutto bene?"),
-			ciaciacicacaca: 1,
-			ciaciacicacac: "ciaciacicacac",
-			" ": 3,
-			ungue: [/caiccioa/gi, new Date(2002, 3, 19)],
-			get alfa() {
-				return this;
-			}
-		},
-		stats
-	)
-);
-
-struct.getRef()!.push({ ready: true, getRef: () => undefined, writeTo: x => x.write("1") });
-
-console.log(struct);
-const writer = new CodeWriter(opts);
-console.log("////////////////////////////////////////////////////////////////////////////////////////////////////////////////////");
-writer.write("((x = {}) => ");
-struct.writeTo(writer, stats, false);
-writer.write(")()");
-console.log(writer.toString());
+/**
+ * Serializes any reasonable JavaScript value.
+ * The "synchronicity" of the function depends on how you call it.
+ * You probably want to use {@link unevalSync} or {@link unevalAsync} instead
+ * @param value The value to serialize
+ * @param opts The serialization options
+ */
+export function *uneval(value: unknown, opts: IOpts): AwaitIterator<string> {
+	const stats = new Stats(opts);
+	const struct = yield* opts.scanner.scanTop(value, stats);
+	const writer = new CodeWriter(opts);
+	struct.writeTo(writer, stats, !opts.safe);
+	return writer.toString();
+}
