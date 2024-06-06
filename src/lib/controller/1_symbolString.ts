@@ -54,7 +54,7 @@ export abstract class SymbolStringScanner_1 extends BaseScanner_0 {
      * @param stats The state of the current serialization
      */
     *scanKey(value: string | symbol, stats: Stats): AwaitIterator<IStruct> {
-        const key = typeof value !== "string" || stats.opts.strRepeatMaxLengthOnKeys && value.length > stats.opts.strRepeatMaxLength
+        const key = typeof value !== "string" || value === "__proto__" || stats.opts.strRepeatMaxLengthOnKeys && value.length > stats.opts.strRepeatMaxLength
             ? yield* this.scan(value, stats)
             : value;
         return new KeyStruct(key);

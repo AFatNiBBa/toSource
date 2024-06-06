@@ -3,7 +3,7 @@ import { CodeWriter } from "../writer";
 import { Stats } from "./opts";
 
 /** An {@link IStruct} that handles multiple references to a value in the same main structure */
-export class RefStruct extends Array<IDefer> implements IStruct {
+export class RefStruct extends Array<IStruct> implements IStruct {
     id: number | null | undefined;
     struct: IStruct | undefined;
     done = false;
@@ -42,8 +42,7 @@ export class RefStruct extends Array<IDefer> implements IStruct {
         if (!this.length)
             return;
         for (var elm of this)
-            if (true || elm.ready)
-                yield elm;
+            yield elm;
         if (this !== elm!.getRef())
             yield this;
     }
@@ -78,9 +77,3 @@ export interface IStruct {
      */
     writeTo(writer: CodeWriter, stats: Stats, safe: boolean): void;
 }
-
-/**
- * An {@link IStruct} that represents an operation that must be deferred.
- * It's used to handle circular references
- */
-export interface IDefer extends IStruct { ready: boolean; }

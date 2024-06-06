@@ -1,5 +1,5 @@
 
-import { IDefer, IStruct, RefStruct } from "./struct";
+import { IStruct, RefStruct } from "./struct";
 import { CodeWriter } from "../writer";
 import { Stats } from "./opts";
 
@@ -62,8 +62,8 @@ export class PropStruct implements IStruct {
     }
 }
 
-/** An {@link IDefer} that handles a circular reference */
-export class PropDefer implements IDefer {
+/** An {@link IStruct} that handles a circular reference */
+export class PropDefer implements IStruct {
     get ready() { return this.obj.id != null; }
 
     constructor(public obj: RefStruct, public prop: PropStruct) { }
