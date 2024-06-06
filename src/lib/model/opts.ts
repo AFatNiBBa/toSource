@@ -6,6 +6,7 @@ import { Scanner } from "./scanner";
 export class Stats {
     cache = new Map<unknown, RefStruct>();
     duplicates = false;
+    depth = 0;
     id = 0;
 
     constructor(public opts: IOpts) { }

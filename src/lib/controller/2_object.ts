@@ -1,6 +1,6 @@
 
-import { SymbolStringScanner_1 } from "./1_symbolString";
 import { IStruct, RawStruct, RefStruct } from "../model/struct";
+import { SymbolStringScanner_1 } from "./1_symbolString";
 import { PropDefer, PropStruct } from "../model/prop";
 import { AwaitIterator } from "../async";
 import { CodeWriter } from "../writer";
@@ -47,12 +47,15 @@ export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
      */
     *scanObjectLiteral(value: object, stats: Stats, ref: RefStruct): AwaitIterator<IStruct> {
         const items: IStruct[] = [];
-        for (const elm of Reflect.ownKeys(value)) {
-            const k = yield* this.scanKey(elm, stats);
-            const v = yield* this.scan(value[elm as keyof typeof value], stats);
-            if (PropDefer.check(v, ref, () => k))
-                items.push(new PropStruct(k, v));
+        if (++stats.depth <= stats.opts.depth) {
+            for (const elm of Reflect.ownKeys(value)) {
+                const k = yield* this.scanKey(elm, stats);
+                const v = yield* this.scan(value[elm as keyof typeof value], stats);
+                if (PropDefer.check(v, ref, () => k))
+                    items.push(new PropStruct(k, v));
+            }
         }
+        stats.depth--;
         return new ObjectStruct(items);
     }
 

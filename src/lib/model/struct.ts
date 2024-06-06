@@ -42,7 +42,7 @@ export class RefStruct extends Array<IDefer> implements IStruct {
         if (!this.length)
             return;
         for (var elm of this)
-            if (elm.ready)
+            if (true || elm.ready)
                 yield elm;
         if (this !== elm!.getRef())
             yield this;

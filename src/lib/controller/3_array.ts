@@ -10,9 +10,11 @@ import { Stats } from "../model/opts";
 export abstract class ArrayScanner_3 extends ObjectScanner_2 {
     *scanArray(value: Array<unknown>, stats: Stats, ref: RefStruct): AwaitIterator<IStruct> {
         const { length } = value, items = new Array<IStruct | undefined>(length);
-        for (var i = 0; i < length; i++)
-            if (i in value)
-                items[i] = PropDefer.check(yield* this.scan(value[i], stats), ref, () => new KeyStruct(new RawStruct(i.toString())));
+        if (++stats.depth <= stats.opts.depth)
+            for (var i = 0; i < length; i++)
+                if (i in value)
+                    items[i] = PropDefer.check(yield* this.scan(value[i], stats), ref, () => new KeyStruct(new RawStruct(i.toString())));
+        stats.depth--;
         return new ArrayStruct(items);
     }
 }
