@@ -10,9 +10,13 @@ export default defineConfig({
         minify: false,
         target: "EsNext",
         lib: {
-            entry: join(__dirname, "src/__test.ts"),
-            fileName: "index",
-            name: "Uneval"
+            entry: join(__dirname, "src/index.ts"),
+            formats: [ "cjs" ],
+            fileName: "index"
+        },
+        rollupOptions: {
+            output: { globals: x => x.replace(/\W(\w)/g, (_, x) => x.toUpperCase()) },
+            external: [ "uneval.js", "internal-prop" ]
         }
     }
 });

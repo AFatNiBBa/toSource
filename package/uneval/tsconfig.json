@@ -1,0 +1,10 @@
+{
+    "include": [ "src/**/*.ts" ],
+    "compilerOptions": {
+        "moduleResolution": "Bundler",
+        "strictFunctionTypes": false,
+        "noImplicitThis": true,
+        "target": "ESNext",
+        "strict": true
+    }
+}

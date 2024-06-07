@@ -1,14 +1,11 @@
 {
-  "name": "uneval.js",
-  "version": "11.0.0",
+  "private": true,
+  "workspaces": [
+    "package/*"
+  ],
   "scripts": {
-    "build": "vite build",
-    "save": "npm run build && npm publish"
-  },
-  "devDependencies": {
-    "@seanalunni/explicit-resource-management-polyfill": "^1.0.1",
-    "@types/node": "^20.7.0",
-    "vite": "^4.4.9",
-    "vite-plugin-dts": "^3.6.0"
+    "build": "npm run build -w package/uneval && npm run build -w package/plugin",
+    "test": "npm run build && npm run test -w package/test",
+    "clean": "git clean -Xdf"
   }
 }
