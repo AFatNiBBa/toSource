@@ -1,6 +1,6 @@
 
 import { AwaitIterator, IStruct, RefStruct, Scanner, Stats } from "uneval.js";
-import { fromProxy } from "internal-prop";
+import { getProxyData } from "internal-prop";
 
 /**
  * Adds proxy traversal abilities to {@link ctor}
@@ -9,16 +9,16 @@ import { fromProxy } from "internal-prop";
 export function proxyPlugin(ctor: typeof Scanner) {
     return class extends ctor {
         scanObjectInner(value: object, stats: Stats, ref: RefStruct): AwaitIterator<IStruct> {
-            const temp = fromProxy(value);
+            const temp = getProxyData(value);
             return temp
-                ? this.scanProxy(value, ...temp, stats)
+                ? this.scanProxy(value, temp.target, temp.handler, stats)
                 : super.scanObjectInner(value, stats, ref);
         }
 
         scanFunctionInner(value: Function, stats: Stats): AwaitIterator<IStruct> {
-            const temp = fromProxy(value);
+            const temp = getProxyData(value);
             return temp
-                ? this.scanProxy(value, ...temp, stats)
+                ? this.scanProxy(value, temp.target, temp.handler, stats)
                 : super.scanFunctionInner(value, stats);
         }
 
