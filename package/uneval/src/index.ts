@@ -41,3 +41,5 @@ export function *uneval(value: unknown, opts: IOpts): AwaitIterator<string> {
 	struct.writeTo(writer, stats, !opts.safe);
 	return writer.toString();
 }
+
+export default unevalSync;

@@ -13,7 +13,7 @@ export class RefStruct implements IStruct {
 
     constructor(public depth: number) { }
 
-    getDefer() { return this.done ? undefined : this; }
+    getDefer() { return this.done ? this.struct?.getDefer() : this; }
 
     writeTo(writer: CodeWriter, stats: Stats, safe: boolean) {
         var { id } = this;
