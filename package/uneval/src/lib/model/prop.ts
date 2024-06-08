@@ -10,12 +10,9 @@ const REGEX_VARIABLE_NAME = /^[\p{L}_$][\p{L}\p{N}_$]*$/u;
 export class KeyStruct implements IStruct {
     constructor(public key: IStruct | string) { }
 
-    getDefer() {
-        const { key } = this;
-        return typeof key === "string"
-            ? undefined
-            : key.getDefer();
-    }
+    getRef() { return this.struct?.getRef(); }
+
+    getDefer() { return this.struct?.getDefer(); }
 
     /**
      * Handles a property access in the most idiomatic way possible.
@@ -40,11 +37,21 @@ export class KeyStruct implements IStruct {
         writer.write(temp);
         if (!obj) writer.write("]");
     }
+
+    /** Returns {@link key}, but ONLY if it's a struct */
+    get struct() {
+        const { key } = this;
+        return typeof key === "string"
+            ? undefined
+            : key;
+    }
 }
 
 /** An {@link IStruct} that handles a proterty assignment */
 export class PropStruct implements IStruct {
     constructor(public key: IStruct, public value: IStruct) { }
+
+    getRef() { return this.value.getRef() }
 
     getDefer() { return RefStruct.circ(this.key, this.value); }
 
@@ -64,9 +71,9 @@ export class PropStruct implements IStruct {
 
 /** An {@link IStruct} that handles a circular reference */
 export class PropDefer implements IStruct {
-    get ready() { return this.obj.id != null; }
-
     constructor(public obj: RefStruct, public prop: PropStruct) { }
+
+    getRef() { return this.prop.getRef(); }
 
     getDefer() { return this.prop.getDefer(); }
 

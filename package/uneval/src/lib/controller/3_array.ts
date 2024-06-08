@@ -1,6 +1,6 @@
 
-import { IStruct, RawStruct, RefStruct } from "../model/struct";
 import { KeyStruct, PropDefer, PropStruct } from "../model/prop";
+import { IStruct, RawStruct, RefStruct } from "../model/struct";
 import { ObjectScanner_2 } from "./2_object";
 import { AwaitIterator } from "../async";
 import { CodeWriter } from "../writer";
@@ -15,7 +15,7 @@ export abstract class ArrayScanner_3 extends ObjectScanner_2 {
                 if (!(i in value)) continue;
                 const v = yield* this.scan(value[i], stats);
                 const defer = v.getDefer();
-                if (defer) defer.push(true, new PropDefer(ref, new PropStruct(new KeyStruct(new RawStruct(i.toString())), v)));
+                if (defer) defer.push(new PropDefer(ref, new PropStruct(new KeyStruct(new RawStruct(i.toString())), v)));
                 else items[i] = v;
             }
         }
@@ -27,6 +27,8 @@ export abstract class ArrayScanner_3 extends ObjectScanner_2 {
 /** An {@link IStruct} that handles arrays, both sparse and not */
 export class ArrayStruct implements IStruct {
     constructor(public items: (IStruct | undefined)[]) { }
+
+    getRef() { return undefined; }
 
     getDefer() { return undefined; }
     

@@ -13,6 +13,8 @@ export class RefStruct implements IStruct {
 
     constructor(public depth: number) { }
 
+    getRef() { return this; }
+
     getDefer() { return this.done ? this.struct?.getDefer() : this; }
 
     writeTo(writer: CodeWriter, stats: Stats, safe: boolean) {
@@ -46,13 +48,12 @@ export class RefStruct implements IStruct {
 
     /**
      * Adds a new deferred operation to the current reference
-     * @param circSelf Tells whether {@link struct} returns the same value as the current reference
      * @param struct The new operation
      */
-    push(circSelf: boolean, struct: IStruct) {
+    push(struct: IStruct) {
         var { deferred } = this;
         if (!deferred) deferred = this.deferred = [];
-        if (circSelf)
+        if (this === struct.getRef())
             deferred.push(struct),
             this.circSelf = true;
         else if (deferred.unshift(struct) === 1) // If the new element is not the only one it doesn't affect `this.circSelf`
@@ -77,6 +78,8 @@ export class RefStruct implements IStruct {
 export class RawStruct implements IStruct {
     constructor(public value: string) { }
 
+    getRef() { return undefined; }
+
     getDefer() { return undefined; }
 
     writeTo(writer: CodeWriter) { writer.write(this.value); }
@@ -89,8 +92,14 @@ export class RawStruct implements IStruct {
  */
 export interface IStruct {
     /**
-     * Returns the eventual topmost circular reference {@link RefStruct} that this object depends on.
-     * If there isn't any, ot it's not known at this level it returns `undefined`
+     * Returns the reference of the current object.
+     * If there isn't any, or it's not known at this level it returns `undefined`
+     */
+    getRef(): RefStruct | undefined;
+
+    /**
+     * Returns the eventual circular reference that this object depends on.
+     * If there are more than one, the one with the smallest {@link RefStruct.depth} must be used
      */
     getDefer(): RefStruct | undefined;
 

@@ -51,7 +51,7 @@ export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
             for (const elm of Reflect.ownKeys(value)) {
                 const prop = new PropStruct(yield* this.scanKey(elm, stats), yield* this.scan(value[elm as keyof typeof value], stats));
                 const defer = prop.getDefer();
-                if (defer) defer.push(true, new PropDefer(ref, prop));
+                if (defer) defer.push(new PropDefer(ref, prop));
                 else items.push(prop);
             }
         }
@@ -72,6 +72,8 @@ export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
 export class WrapperStruct implements IStruct {
     constructor(public struct: IStruct) { }
 
+    getRef() { return undefined; }
+
     getDefer() { return this.struct.getDefer(); }
 
     writeTo(writer: CodeWriter, stats: Stats): void {
@@ -84,6 +86,8 @@ export class WrapperStruct implements IStruct {
 /** An {@link IStruct} that handles object literals */
 export class ObjectStruct implements IStruct {
     constructor(public items: IStruct[]) { }
+
+    getRef() { return undefined; }
 
     getDefer() { return undefined; }
     

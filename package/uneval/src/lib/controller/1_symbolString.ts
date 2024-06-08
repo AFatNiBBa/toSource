@@ -1,5 +1,5 @@
 
-import { IStruct, RawStruct } from "../model/struct";
+import { IStruct, RawStruct, RefStruct } from "../model/struct";
 import { KeyStruct } from "../model/prop";
 import { AwaitIterator } from "../async";
 import { BaseScanner_0 } from "./0_base";
@@ -65,6 +65,8 @@ export abstract class SymbolStringScanner_1 extends BaseScanner_0 {
 export class SymbolStruct implements IStruct {
     constructor(public key: IStruct, public registry: boolean) { }
     
+    getRef() { return undefined; }
+
     getDefer() { return this.key.getDefer(); }
 
     writeTo(writer: CodeWriter, stats: Stats) {

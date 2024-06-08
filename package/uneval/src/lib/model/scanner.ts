@@ -2,7 +2,7 @@
 import { FunctionScanner_6 } from "../controller/6_function";
 import { AwaitIterator } from "../async";
 import { CodeWriter } from "../writer";
-import { IStruct } from "./struct";
+import { IStruct, RefStruct } from "./struct";
 import { Stats } from "./opts";
 
 /**
@@ -38,6 +38,8 @@ export class Scanner extends FunctionScanner_6 {
 /** An {@link IStruct} that handles the top level object of a serialization */
 export class TopStruct implements IStruct {
     constructor(public struct: IStruct) { }
+
+    getRef() { return undefined; }
 
     getDefer() { return undefined; }
 

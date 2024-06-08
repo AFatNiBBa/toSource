@@ -39,6 +39,8 @@ export function proxyPlugin(ctor: typeof Scanner) {
 export class ProxyStruct implements IStruct {
     constructor(public target: IStruct, public handler: IStruct) { }
 
+    getRef() { return undefined; }
+
     getDefer() { return RefStruct.circ(this.target, this.handler); }
     
     writeTo(writer: CodeWriter, stats: Stats) {
