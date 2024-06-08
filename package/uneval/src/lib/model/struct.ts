@@ -27,7 +27,7 @@ export class RefStruct implements IStruct {
         if (this.deferred)
             writer.write("("),
             writer.enter(),
-            writer.endl();
+            writer.endl(false);
         else if (!safe)
             writer.write("(");
         const tag = `${stats.opts.var}[${id}]`;
@@ -44,7 +44,7 @@ export class RefStruct implements IStruct {
             writer.endl(),
             writer.write(tag);
         writer.exit();
-        writer.endl();
+        writer.endl(false);
         writer.write(")");
     }
 

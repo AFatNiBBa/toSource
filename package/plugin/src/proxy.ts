@@ -46,13 +46,13 @@ export class ProxyStruct implements IStruct {
     writeTo(writer: CodeWriter, stats: Stats) {
         writer.write("new Proxy(");
         writer.enter();
-        writer.endl();
+        writer.endl(false);
         this.target.writeTo(writer, stats, true);
         writer.write(",");
         writer.endl();
         this.handler.writeTo(writer, stats, true);
         writer.exit();
-        writer.endl();
+        writer.endl(false);
         writer.write(")");
     }
 }

@@ -33,13 +33,13 @@ export class ObjectProtoStruct implements IStruct {
     writeTo(writer: CodeWriter, stats: Stats) {
         writer.write("Object.setPrototypeOf(");
         writer.enter();
-        writer.endl();
+        writer.endl(false);
         this.obj.writeTo(writer, stats, true);
         writer.write(",");
         writer.endl();
         this.proto.writeTo(writer, stats, true);
         writer.exit();
-        writer.endl();
+        writer.endl(false);
         writer.write(")");
     }
 }

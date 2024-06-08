@@ -20,9 +20,13 @@ export class CodeWriter {
     /** Writes a series of space-delimited strings */
     write(...str: string[]) { this.result += str.join(this.opts.space); }
 
-    /** Writes a new-line */
-    endl() {
+    /**
+     * Writes a new-line
+     * @param endSpace Tells whether to put a space before the new-line (For space-only mode)
+     */
+    endl(endSpace = true) {
         const { space, endl, tab } = this.opts;
-        this.result += space + endl + tab.repeat(this.level);
+        const temp = endl + tab.repeat(this.level);
+        this.result += endSpace ? space + temp : temp;
     }
 }
