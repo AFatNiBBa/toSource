@@ -4,9 +4,10 @@ import { serialize } from "./util";
 test("base", () => {
     const a: any = {};
     a.b = a;
-    a.c = new Proxy(a, a);
+    const f: any = { a };
+    a.c = new Proxy(a, f);
     a.d = a.c;
 
-    const e = serialize(a, true);
+    const e = serialize(f, true);
     console.log(e);
 });

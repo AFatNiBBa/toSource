@@ -37,8 +37,7 @@ export abstract class BaseScanner_0 {
         var ref = stats.cache.get(value);
         if (!ref)
             stats.cache.set(value, ref = new RefStruct(stats.depth)), // The reference must be cached BEFORE traversing the value, otherwise circular references could generate a stack overflow
-            ref.struct = yield* f(ref, value),
-            ref.done = true;
+            ref.struct = yield* f(ref, value);
         else if (ref.id === undefined)
             stats.duplicates = true,
             ref.id = null;

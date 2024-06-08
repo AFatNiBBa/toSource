@@ -5,17 +5,19 @@ import { Stats } from "./opts";
 /** An {@link IStruct} that handles multiple references to a value in the same main structure */
 export class RefStruct implements IStruct {
     private deferred: IStruct[] | undefined;
-    private circSelf = true;
+    private lastSelf = true;
 
     id: number | null | undefined;
     struct: IStruct | undefined;
-    done = false;
 
     constructor(public depth: number) { }
 
     getRef() { return this; }
 
-    getDefer() { return this.done ? this.struct?.getDefer() : this; }
+    getDefer() {
+        const { struct } = this;
+        return struct ? struct.getDefer() : this;
+    }
 
     writeTo(writer: CodeWriter, stats: Stats, safe: boolean) {
         var { id } = this;
@@ -37,7 +39,7 @@ export class RefStruct implements IStruct {
             writer.write(","),
             writer.endl(),
             elm.writeTo(writer, stats, true);
-        if (!this.circSelf)
+        if (!this.lastSelf)
             writer.write(","),
             writer.endl(),
             writer.write(tag);
@@ -55,9 +57,9 @@ export class RefStruct implements IStruct {
         if (!deferred) deferred = this.deferred = [];
         if (this === struct.getRef())
             deferred.push(struct),
-            this.circSelf = true;
+            this.lastSelf = true;
         else if (deferred.unshift(struct) === 1) // If the new element is not the only one it doesn't affect `this.circSelf`
-            this.circSelf = false;
+            this.lastSelf = false;
     }
 
     /**
@@ -68,7 +70,7 @@ export class RefStruct implements IStruct {
     static circ(...items: IStruct[]) {
         var out: RefStruct | undefined, temp: RefStruct | undefined;
         for (const elm of items)
-            if ((temp = elm.getDefer()) && !temp.done && (!out || temp.depth < out.depth))
+            if ((temp = elm.getDefer()) && (!out || temp.depth < out.depth))
                 out = temp;
         return out;
     }
