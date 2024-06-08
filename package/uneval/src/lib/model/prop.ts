@@ -10,11 +10,11 @@ const REGEX_VARIABLE_NAME = /^[\p{L}_$][\p{L}\p{N}_$]*$/u;
 export class KeyStruct implements IStruct {
     constructor(public key: IStruct | string) { }
 
-    getRef() {
+    getDefer() {
         const { key } = this;
         return typeof key === "string"
             ? undefined
-            : key.getRef();
+            : key.getDefer();
     }
 
     /**
@@ -46,7 +46,7 @@ export class KeyStruct implements IStruct {
 export class PropStruct implements IStruct {
     constructor(public key: IStruct, public value: IStruct) { }
 
-    getRef() { return this.value.getRef(); }
+    getDefer() { return RefStruct.circ(this.key, this.value); }
 
     /**
      * Handles a property assignment in the most idiomatic way possible
@@ -68,24 +68,10 @@ export class PropDefer implements IStruct {
 
     constructor(public obj: RefStruct, public prop: PropStruct) { }
 
-    getRef() { return this.prop.getRef(); }
+    getDefer() { return this.prop.getDefer(); }
 
     writeTo(writer: CodeWriter, stats: Stats): void {
         this.obj.writeTo(writer, stats, true);
         this.prop.writeTo(writer, stats, false);
-    }
-
-    /**
-     * Checks if {@link value} points to a circular reference that can be fixed with a property assignment
-     * @param value The value to check
-     * @param obj The object in which the circular reference should've been stored
-     * @param k A function that generates the key inside of {@link obj} in which {@link value} must end up
-     * @returns The {@link value} if it's not a circular reference, `undefined` otherwise
-     */
-    static check<T extends IStruct>(value: T, obj: RefStruct, k: () => IStruct): T | undefined {
-        const ref = value.getRef();
-        if (ref == null || ref.done) return value;
-        const circ = new this(obj, new PropStruct(k(), value));
-        ref.push(circ);
     }
 }

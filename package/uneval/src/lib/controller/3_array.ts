@@ -1,6 +1,6 @@
 
 import { IStruct, RawStruct, RefStruct } from "../model/struct";
-import { KeyStruct, PropDefer } from "../model/prop";
+import { KeyStruct, PropDefer, PropStruct } from "../model/prop";
 import { ObjectScanner_2 } from "./2_object";
 import { AwaitIterator } from "../async";
 import { CodeWriter } from "../writer";
@@ -10,10 +10,15 @@ import { Stats } from "../model/opts";
 export abstract class ArrayScanner_3 extends ObjectScanner_2 {
     *scanArray(value: Array<unknown>, stats: Stats, ref: RefStruct): AwaitIterator<IStruct> {
         const { length } = value, items = new Array<IStruct | undefined>(length);
-        if (++stats.depth <= stats.opts.depth)
-            for (var i = 0; i < length; i++)
-                if (i in value)
-                    items[i] = PropDefer.check(yield* this.scan(value[i], stats), ref, () => new KeyStruct(new RawStruct(i.toString())));
+        if (++stats.depth <= stats.opts.depth) {
+            for (var i = 0; i < length; i++) {
+                if (!(i in value)) continue;
+                const v = yield* this.scan(value[i], stats);
+                const defer = v.getDefer();
+                if (defer) defer.push(true, new PropDefer(ref, new PropStruct(new KeyStruct(new RawStruct(i.toString())), v)));
+                else items[i] = v;
+            }
+        }
         stats.depth--;
         return new ArrayStruct(items);
     }
@@ -23,7 +28,7 @@ export abstract class ArrayScanner_3 extends ObjectScanner_2 {
 export class ArrayStruct implements IStruct {
     constructor(public items: (IStruct | undefined)[]) { }
 
-    getRef() { return undefined; }
+    getDefer() { return undefined; }
     
     writeTo(writer: CodeWriter, stats: Stats) {
         writer.write("[");

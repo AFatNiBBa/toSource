@@ -65,7 +65,7 @@ export abstract class SymbolStringScanner_1 extends BaseScanner_0 {
 export class SymbolStruct implements IStruct {
     constructor(public key: IStruct, public registry: boolean) { }
     
-    getRef() { return undefined; }
+    getDefer() { return this.key.getDefer(); }
 
     writeTo(writer: CodeWriter, stats: Stats) {
         writer.write(this.registry ? "Symbol.for(" : "Symbol(");

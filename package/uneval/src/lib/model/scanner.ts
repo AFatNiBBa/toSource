@@ -39,7 +39,7 @@ export class Scanner extends FunctionScanner_6 {
 export class TopStruct implements IStruct {
     constructor(public struct: IStruct) { }
 
-    getRef() { return undefined; }
+    getDefer() { return undefined; }
 
     writeTo(writer: CodeWriter, stats: Stats, safe: boolean): void {
         const { opts, duplicates, opts: { factory } } = stats, func = duplicates || factory, wrap = factory ? !safe : duplicates;
