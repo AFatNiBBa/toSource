@@ -36,7 +36,7 @@ export abstract class BaseScanner_0 {
     *scanRef<T>(value: T, stats: Stats, f: (r: RefStruct, v: T) => AwaitIterator<IStruct>): AwaitIterator<IStruct> {
         var ref = stats.cache.get(value);
         if (!ref)
-            stats.cache.set(value, ref = new RefStruct()), // The reference must be cached BEFORE traversing the value, otherwise circular references could generate a stack overflow
+            stats.cache.set(value, ref = new RefStruct(stats.depth)), // The reference must be cached BEFORE traversing the value, otherwise circular references could generate a stack overflow
             ref.struct = yield* f(ref, value),
             ref.done = true;
         else if (ref.id === undefined)

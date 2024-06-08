@@ -1,16 +1,12 @@
 
 import { Scanner, Stats, unevalSync } from "uneval.js";
-import { proxyPlugin } from "uneval-plugin-v8";
-
-/** Creates a new {@link Scanner} with my plugins applied */
-const v8 = Scanner.plugin(proxyPlugin);
 
 /**
  * Serializes an object
  * @param x The object to serialize
  * @param pretty Tells whether the resulting string should be serialized
  */
-export const serialize = (x: unknown, pretty = false) => unevalSync(x, Stats.normalize({ pretty, tab: 2, scanner: v8.prototype }));
+export const serialize = (x: unknown, pretty = false) => unevalSync(x, Stats.normalize({ pretty, tab: 2 }));
 
 /**
  * Ensures that the compiler doesn't change the source of functions to much
