@@ -1,13 +1,13 @@
 
 import { KeyStruct, PropDefer, PropStruct } from "../model/prop";
 import { IStruct, RawStruct, RefStruct } from "../model/struct";
-import { ObjectScanner_2 } from "./2_object";
+import { ProtoScanner_3 } from "./3_proto";
 import { AwaitIterator } from "../async";
 import { CodeWriter } from "../writer";
 import { Stats } from "../model/opts";
 
 /** Scanner that handles arrays */
-export abstract class ArrayScanner_3 extends ObjectScanner_2 {
+export abstract class ArrayScanner_4 extends ProtoScanner_3 {
     *scanArray(value: Array<unknown>, stats: Stats, ref: RefStruct): AwaitIterator<IStruct> {
         const { length } = value, items = new Array<IStruct | undefined>(length);
         if (++stats.depth <= stats.opts.depth) {

@@ -1,11 +1,11 @@
 
-import { ArrayScanner_3 } from "./3_array";
+import { ArrayScanner_4 } from "./4_array";
 import { IStruct } from "../model/struct";
 import { AwaitIterator } from "../async";
 import { Stats } from "../model/opts";
 
 /** Scanner that handles functions */
-export class FunctionScanner_6 extends ArrayScanner_3 {
+export class FunctionScanner_6 extends ArrayScanner_4 {
     scanFunction(value: Function, stats: Stats): AwaitIterator<IStruct> {
         return this.scanRef(value, stats, () => this.scanFunctionInner(value, stats));
     }

@@ -5,7 +5,8 @@ import { CodeWriter } from "./lib/writer";
 
 export { SymbolStruct } from "./lib/controller/1_symbolString";
 export { WrapperStruct, ObjectStruct } from "./lib/controller/2_object";
-export { ArrayStruct } from "./lib/controller/3_array";
+export { ObjectProtoStruct, ProtoStruct } from "./lib/controller/3_proto";
+export { ArrayStruct } from "./lib/controller/4_array";
 export * from "./lib/model/opts";
 export * from "./lib/model/prop";
 export * from "./lib/model/scanner";

@@ -19,15 +19,26 @@ export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
      * @param ref The reference to the current value
      */
     *scanObjectInner(value: object, stats: Stats, ref: RefStruct): AwaitIterator<IStruct> {
-        return Array.isArray(value)
-            ? yield* this.scanArray(value, stats, ref)
+        const { constructor } = value;
+        return typeof constructor === "function" && constructor.prototype === value
+                ? yield* this.scanProto(value, constructor, stats)
+            : Array.isArray(value)
+                ? yield* this.scanObjectProto(value, Array.prototype, stats, ref, yield* this.scanArray(value, stats, ref))
             : value instanceof Date
-                ? new RawStruct(`new Date(${+value})`)
-                : value instanceof RegExp
-                    ? new RawStruct(value.toString())
-                    : value instanceof String || value instanceof Boolean || value instanceof Number || value instanceof BigInt || value instanceof Symbol
-                        ? yield* this.scanObjectWrapper(value, stats)
-                        : yield* this.scanObjectLiteral(value, stats, ref);
+                ? yield* this.scanObjectProto(value, Date.prototype, stats, ref, new RawStruct(`new Date(${+value})`))
+            : value instanceof RegExp
+                ? yield* this.scanObjectProto(value, RegExp.prototype, stats, ref, new RawStruct(value.toString()))
+            : value instanceof String
+                ? yield* this.scanObjectProto(value, String.prototype, stats, ref, yield* this.scanObjectWrapper(value, stats))
+            : value instanceof Boolean
+                ? yield* this.scanObjectProto(value, Boolean.prototype, stats, ref, yield* this.scanObjectWrapper(value, stats))
+            : value instanceof Number
+                ? yield* this.scanObjectProto(value, Number.prototype, stats, ref, yield* this.scanObjectWrapper(value, stats))
+            : value instanceof BigInt
+                ? yield* this.scanObjectProto(value, BigInt.prototype, stats, ref, yield* this.scanObjectWrapper(value, stats))
+            : value instanceof Symbol
+                ? yield* this.scanObjectProto(value, Symbol.prototype, stats, ref, yield* this.scanObjectWrapper(value, stats))
+                : yield* this.scanObjectProto(value, Object.prototype, stats, ref, yield* this.scanObjectLiteral(value, stats, ref));
     }
 
     /**
@@ -66,6 +77,24 @@ export abstract class ObjectScanner_2 extends SymbolStringScanner_1 {
      * @param ref The reference to the current value
      */
     abstract scanArray(value: Array<unknown>, stats: Stats, ref: RefStruct): AwaitIterator<IStruct>;
+
+    /**
+     * Traverses the prototype of an object
+     * @param value The value to traverse
+     * @param expected The expected prototype of {@link value}
+     * @param stats The state of the current serialization
+     * @param ref The reference to the current value
+     * @param struct The structure of {@link value}
+     */
+    abstract scanObjectProto(value: object, expected: object, stats: Stats, ref: RefStruct, struct: IStruct): AwaitIterator<IStruct>;
+
+    /**
+     * Traverses an object which IS a prototype
+     * @param value The value to traverse
+     * @param ctor The function to which the prototype belongs
+     * @param stats The state of the current serialization
+     */
+    abstract scanProto(value: object, ctor: Function, stats: Stats): AwaitIterator<IStruct>;
 }
 
 /** An {@link IStruct} that handles an object wrapper for a native value */
